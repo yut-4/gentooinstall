@@ -3,57 +3,43 @@
 Python library
 ==============
 
-Archinstall ships on `PyPi <https://pypi.org/>`_ as `archinstall <pypi.org/project/archinstall/>`_.
-But the library can be installed manually as well.
+`gentooinstall` can be installed from PyPI or from source.
 
-.. warning::
-    These steps are not required if you want to use archinstall on the official Arch Linux ISO.
-
-Installing with pacman
-----------------------
-
-Archinstall is on the `official repositories <https://wiki.archlinux.org/index.php/Official_repositories>`_.
-And it will also install archinstall as a python library.
-
-To install both the library and the archinstall script:
+Install from PyPI
+-----------------
 
 .. code-block:: console
 
-    pacman -S archinstall
-
-Alternatively, you can install only the library and not the helper executable using the ``python-archinstall`` package.
-
-Installing from PyPI
---------------------
-
-The basic concept of PyPI applies using `pip`.
-
-.. code-block:: console
-
-    pip install archinstall
+    pip install gentooinstall
 
 .. _installing.python.manual:
 
-Install using source code
--------------------------
-
-You can also install using the source code.
-For sake of simplicity we will use ``git clone`` in this example.
+Install from source
+-------------------
 
 .. code-block:: console
 
-    git clone https://github.com/archlinux/archinstall
+    git clone https://github.com/gentooinstall/gentooinstall
+    cd gentooinstall
+    python3 -m venv .venv
+    . .venv/bin/activate
+    pip install -e .
 
-You can either move the folder into your project and simply do
-
-.. code-block:: python
-
-    import archinstall
-
-Or you can PyPa's `build <https://github.com/pypa/build>`_ and `installer <https://github.com/pypa/installer>`_ to install it into pythons module path.
+Use as a module
+---------------
 
 .. code-block:: console
 
-    $ cd archinstall
-    $ python -m build .
-    $ python -m installer dist/*.whl
+    python -m gentooinstall --script list
+
+.. code-block:: console
+
+    python -m gentooinstall --script guided
+
+Declarative examples
+--------------------
+
+.. code-block:: console
+
+    gentooinstall --config examples/gentoo-grub-uefi.json
+    gentooinstall --config examples/gentoo-grub-bios.json

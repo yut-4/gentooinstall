@@ -1,0 +1,140 @@
+{
+  "gentooinstall-language": "English",
+  "script": "guided",
+  "hostname": "gentoo-bios",
+  "timezone": "UTC",
+  "ntp": true,
+  "offline": false,
+  "kernels": [
+    "gentoo-kernel-bin"
+  ],
+  "bootloader_config": {
+    "bootloader": "Grub",
+    "uki": false,
+    "removable": false
+  },
+  "disk_config": {
+    "config_type": "default_layout",
+    "device_modifications": [
+      {
+        "device": "/dev/sda",
+        "partitions": [
+          {
+            "btrfs": [],
+            "flags": [],
+            "fs_type": "ext4",
+            "size": {
+              "sector_size": null,
+              "unit": "GiB",
+              "value": 1
+            },
+            "mount_options": [],
+            "mountpoint": "/boot",
+            "obj_id": "44444444-4444-4444-8444-444444444444",
+            "start": {
+              "sector_size": null,
+              "unit": "MiB",
+              "value": 1
+            },
+            "status": "create",
+            "type": "primary"
+          },
+          {
+            "btrfs": [],
+            "flags": [],
+            "fs_type": "ext4",
+            "size": {
+              "sector_size": null,
+              "unit": "GiB",
+              "value": 40
+            },
+            "mount_options": [],
+            "mountpoint": "/",
+            "obj_id": "55555555-5555-4555-8555-555555555555",
+            "start": {
+              "sector_size": null,
+              "unit": "MiB",
+              "value": 1025
+            },
+            "status": "create",
+            "type": "primary"
+          },
+          {
+            "btrfs": [],
+            "flags": [],
+            "fs_type": "ext4",
+            "size": {
+              "sector_size": null,
+              "unit": "Percent",
+              "value": 100
+            },
+            "mount_options": [],
+            "mountpoint": "/home",
+            "obj_id": "66666666-6666-4666-8666-666666666666",
+            "start": {
+              "sector_size": null,
+              "unit": "GiB",
+              "value": 41
+            },
+            "status": "create",
+            "type": "primary"
+          }
+        ],
+        "wipe": true
+      }
+    ]
+  },
+  "locale_config": {
+    "kb_layout": "us",
+    "sys_enc": "UTF-8",
+    "sys_lang": "en_US"
+  },
+  "mirror_config": {
+    "custom_servers": [
+      {
+        "url": "https://distfiles.gentoo.org/"
+      }
+    ],
+    "mirror_regions": {
+      "Worldwide": [
+        "https://distfiles.gentoo.org/"
+      ]
+    },
+    "optional_repositories": [],
+    "custom_repositories": []
+  },
+  "network_config": {
+    "type": "manual",
+    "nics": [
+      {
+        "iface": "eno1",
+        "dhcp": true
+      }
+    ]
+  },
+  "gentoo": {
+    "architecture": "amd64",
+    "init_system": "openrc",
+    "sync_mode": "sync",
+    "use_wgetload": true,
+    "profile": "default/linux/amd64/23.0",
+    "make_conf": {
+      "common_flags": "-O2 -pipe",
+      "cflags": "${COMMON_FLAGS}",
+      "cxxflags": "${COMMON_FLAGS}",
+      "makeopts": "-j8",
+      "emerge_default_opts": "--jobs 8 --load-average 8",
+      "features": [
+        "parallel-fetch"
+      ],
+      "grub_platforms": [
+        "pc"
+      ]
+    }
+  },
+  "packages": [],
+  "parallel_downloads": 5,
+  "services": [],
+  "custom_commands": [],
+  "version": "3.0.2"
+}

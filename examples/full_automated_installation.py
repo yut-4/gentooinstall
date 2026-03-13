@@ -1,10 +1,10 @@
 from pathlib import Path
 
-from archinstall.default_profiles.minimal import MinimalProfile
-from archinstall.lib.disk.device_handler import device_handler
-from archinstall.lib.disk.filesystem import FilesystemHandler
-from archinstall.lib.installer import Installer
-from archinstall.lib.models.device import (
+from gentooinstall.default_profiles.minimal import MinimalProfile
+from gentooinstall.lib.disk.device_handler import device_handler
+from gentooinstall.lib.disk.filesystem import FilesystemHandler
+from gentooinstall.lib.gentoo_installer import GentooInstaller
+from gentooinstall.lib.models.device import (
 	DeviceModification,
 	DiskEncryption,
 	DiskLayoutConfiguration,
@@ -18,9 +18,9 @@ from archinstall.lib.models.device import (
 	Size,
 	Unit,
 )
-from archinstall.lib.models.profile import ProfileConfiguration
-from archinstall.lib.models.users import Password, User
-from archinstall.lib.profile.profiles_handler import profile_handler
+from gentooinstall.lib.models.profile import ProfileConfiguration
+from gentooinstall.lib.models.users import Password, User
+from gentooinstall.lib.profile.profiles_handler import profile_handler
 
 # we're creating a new ext4 filesystem installation
 fs_type = FilesystemType('ext4')
@@ -98,13 +98,13 @@ fs_handler.perform_filesystem_operations(show_countdown=False)
 
 mountpoint = Path('/tmp')
 
-with Installer(
+with GentooInstaller(
 	mountpoint,
 	disk_config,
-	kernels=['linux'],
+	kernels=['gentoo-kernel-bin'],
 ) as installation:
 	installation.mount_ordered_layout()
-	installation.minimal_installation(hostname='minimal-arch')
+	installation.minimal_installation(hostname='minimal-gentoo')
 	installation.add_additional_packages(['nano', 'wget', 'git'])
 
 # Optionally, install a profile of choice.
@@ -112,5 +112,5 @@ with Installer(
 profile_config = ProfileConfiguration(MinimalProfile())
 profile_handler.install_profile_config(installation, profile_config)
 
-user = User('archinstall', Password(plaintext='password'), True)
+user = User('gentooinstall', Password(plaintext='password'), True)
 installation.create_users(user)

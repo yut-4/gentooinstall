@@ -1,0 +1,547 @@
+import sys
+from typing import override
+
+from gentooinstall.lib.applications.application_menu import ApplicationMenu
+from gentooinstall.lib.args import InstallerConfig
+from gentooinstall.lib.authentication.authentication_menu import AuthenticationMenu
+from gentooinstall.lib.bootloader.bootloader_menu import BootloaderMenu
+from gentooinstall.lib.configuration import save_config
+from gentooinstall.lib.disk.disk_menu import DiskLayoutConfigurationMenu
+from gentooinstall.lib.hardware import SysInfo
+from gentooinstall.lib.interactions.general_conf import add_number_of_parallel_downloads, select_hostname, select_ntp, select_timezone
+from gentooinstall.lib.interactions.system_conf import select_kernel, select_swap
+from gentooinstall.lib.locale.locale_menu import LocaleMenu
+from gentooinstall.lib.menu.abstract_menu import CONFIG_KEY, AbstractMenu
+from gentooinstall.lib.menu.helpers import Input
+from gentooinstall.lib.models.application import ApplicationConfiguration, ZramConfiguration
+from gentooinstall.lib.models.authentication import AuthenticationConfiguration
+from gentooinstall.lib.models.bootloader import Bootloader, BootloaderConfiguration
+from gentooinstall.lib.models.device import DiskLayoutConfiguration, DiskLayoutType, FilesystemType, PartitionModification
+from gentooinstall.lib.models.locale import LocaleConfiguration
+from gentooinstall.lib.models.network import NetworkConfiguration, NicType
+from gentooinstall.lib.models.profile import ProfileConfiguration
+from gentooinstall.lib.network.network_menu import select_network
+from gentooinstall.lib.output import FormattedOutput
+from gentooinstall.lib.translationhandler import Language, tr, translation_handler
+from gentooinstall.tui.ui.result import ResultType
+from gentooinstall.tui.ui.menu_item import MenuItem, MenuItemGroup
+
+
+class GlobalMenu(AbstractMenu[None]):
+	def __init__(
+		self,
+		installer_config: InstallerConfig,
+		skip_boot: bool = False,
+		title: str | None = None,
+	) -> None:
+		self._installer_config = installer_config
+		self._skip_boot = skip_boot
+		self._uefi = SysInfo.has_uefi()
+		menu_options = self._get_menu_options()
+
+		self._item_group = MenuItemGroup(
+			menu_options,
+			sort_items=False,
+			checkmarks=True,
+		)
+
+		super().__init__(self._item_group, config=installer_config, title=title)
+
+	def _get_menu_options(self) -> list[MenuItem]:
+		menu_options = [
+			MenuItem(
+				text=tr('Installer language'),
+				action=self._select_installer_language,
+				preview_action=self._prev_installer_language,
+				key='installer_language',
+			),
+			MenuItem(
+				text=tr('Locales'),
+				value=LocaleConfiguration.default(),
+				action=self._locale_selection,
+				preview_action=self._prev_locale,
+				key='locale_config',
+			),
+			MenuItem(
+				text=tr('Disk configuration'),
+				action=self._select_disk_config,
+				preview_action=self._prev_disk_config,
+				mandatory=True,
+				key='disk_config',
+			),
+			MenuItem(
+				text=tr('Swap'),
+				value=ZramConfiguration(enabled=True),
+				action=select_swap,
+				preview_action=self._prev_swap,
+				key='swap',
+			),
+			MenuItem(
+				text=tr('Bootloader'),
+				value=BootloaderConfiguration.get_default(self._uefi, self._skip_boot),
+				action=self._select_bootloader_config,
+				preview_action=self._prev_bootloader_config,
+				key='bootloader_config',
+			),
+			MenuItem(
+				text=tr('Kernels'),
+				value=['gentoo-kernel-bin'],
+				action=select_kernel,
+				preview_action=self._prev_kernel,
+				mandatory=True,
+				key='kernels',
+			),
+			MenuItem(
+				text=tr('Hostname'),
+				value='gentoo',
+				action=select_hostname,
+				preview_action=self._prev_hostname,
+				key='hostname',
+			),
+			MenuItem(
+				text=tr('Authentication'),
+				action=self._select_authentication,
+				preview_action=self._prev_authentication,
+				key='auth_config',
+			),
+			MenuItem(
+				text=tr('Profile'),
+				action=self._select_profile,
+				preview_action=self._prev_profile,
+				key='profile_config',
+			),
+			MenuItem(
+				text=tr('Applications'),
+				action=self._select_applications,
+				value=[],
+				preview_action=self._prev_applications,
+				key='app_config',
+			),
+			MenuItem(
+				text=tr('Network configuration'),
+				action=select_network,
+				value={},
+				preview_action=self._prev_network_config,
+				key='network_config',
+			),
+			MenuItem(
+				text=tr('Parallel Downloads'),
+				action=add_number_of_parallel_downloads,
+				value=1,
+				preview_action=self._prev_parallel_dw,
+				key='parallel_downloads',
+			),
+			MenuItem(
+				text=tr('Additional packages'),
+				action=self._select_additional_packages,
+				value=[],
+				preview_action=self._prev_additional_pkgs,
+				key='packages',
+			),
+			MenuItem(
+				text=tr('Timezone'),
+				action=select_timezone,
+				value='UTC',
+				preview_action=self._prev_tz,
+				key='timezone',
+			),
+			MenuItem(
+				text=tr('Automatic time sync (NTP)'),
+				action=select_ntp,
+				value=True,
+				preview_action=self._prev_ntp,
+				key='ntp',
+			),
+			MenuItem(
+				text='',
+				read_only=True,
+			),
+			MenuItem(
+				text=tr('Save configuration'),
+				action=lambda x: self._safe_config(),
+				key=f'{CONFIG_KEY}_save',
+			),
+			MenuItem(
+				text=tr('Install'),
+				preview_action=self._prev_install_invalid_config,
+				key=f'{CONFIG_KEY}_install',
+			),
+			MenuItem(
+				text=tr('Abort'),
+				action=lambda x: sys.exit(1),
+				key=f'{CONFIG_KEY}_abort',
+			),
+		]
+
+		return menu_options
+
+	def _safe_config(self) -> None:
+		# data: dict[str, Any] = {}
+		# for item in self._item_group.items:
+		# if item.key is not None:
+		# data[item.key] = item.value
+
+		self.sync_all_to_config()
+		save_config(self._installer_config)
+
+	def _missing_configs(self) -> list[str]:
+		item: MenuItem = self._item_group.find_by_key('auth_config')
+		auth_config: AuthenticationConfiguration | None = item.value
+
+		def check(s: str) -> bool:
+			item = self._item_group.find_by_key(s)
+			return item.has_value()
+
+		def has_superuser() -> bool:
+			if auth_config and auth_config.users:
+				return any([u.sudo for u in auth_config.users])
+			return False
+
+		missing = set()
+
+		if (auth_config is None or auth_config.root_enc_password is None) and not has_superuser():
+			missing.add(
+				tr('Either root-password or at least 1 user with sudo privileges must be specified'),
+			)
+
+		for item in self._item_group.items:
+			if item.mandatory:
+				assert item.key is not None
+				if not check(item.key):
+					missing.add(item.text)
+
+		return list(missing)
+
+	@override
+	def _is_config_valid(self) -> bool:
+		"""
+		Checks the validity of the current configuration.
+		"""
+		if len(self._missing_configs()) != 0:
+			return False
+		return self._validate_bootloader() is None
+
+	def _select_installer_language(self, preset: Language) -> Language:
+		from gentooinstall.lib.interactions.general_conf import select_installer_language
+
+		language = select_installer_language(translation_handler.translated_languages, preset)
+		translation_handler.activate(language)
+
+		self._update_lang_text()
+
+		return language
+
+	def _prev_installer_language(self, item: MenuItem) -> str | None:
+		if not item.value:
+			return None
+
+		lang: Language = item.value
+		return f'{tr("Language")}: {lang.display_name}'
+
+	def _select_applications(self, preset: ApplicationConfiguration | None) -> ApplicationConfiguration | None:
+		app_config = ApplicationMenu(preset).run()
+		return app_config
+
+	def _select_authentication(self, preset: AuthenticationConfiguration | None) -> AuthenticationConfiguration | None:
+		auth_config = AuthenticationMenu(preset).run()
+		return auth_config
+
+	def _update_lang_text(self) -> None:
+		"""
+		The options for the global menu are generated with a static text;
+		each entry of the menu needs to be updated with the new translation
+		"""
+		new_options = self._get_menu_options()
+
+		for o in new_options:
+			if o.key is not None:
+				self._item_group.find_by_key(o.key).text = o.text
+
+	def _locale_selection(self, preset: LocaleConfiguration) -> LocaleConfiguration:
+		locale_config = LocaleMenu(preset).run()
+		return locale_config
+
+	def _prev_locale(self, item: MenuItem) -> str | None:
+		if not item.value:
+			return None
+
+		config: LocaleConfiguration = item.value
+		return config.preview()
+
+	def _prev_network_config(self, item: MenuItem) -> str | None:
+		if item.value:
+			network_config: NetworkConfiguration = item.value
+			if network_config.type == NicType.MANUAL:
+				output = FormattedOutput.as_table(network_config.nics)
+			else:
+				output = f'{tr("Network configuration")}:\n{network_config.type.display_msg()}'
+
+			return output
+		return None
+
+	def _prev_additional_pkgs(self, item: MenuItem) -> str | None:
+		if item.value:
+			output = '\n'.join(sorted(item.value))
+			return output
+		return None
+
+	def _prev_authentication(self, item: MenuItem) -> str | None:
+		if item.value:
+			auth_config: AuthenticationConfiguration = item.value
+			output = ''
+
+			if auth_config.root_enc_password:
+				output += f'{tr("Root password")}: {auth_config.root_enc_password.hidden()}\n'
+
+			if auth_config.users:
+				output += FormattedOutput.as_table(auth_config.users) + '\n'
+
+			if auth_config.u2f_config:
+				u2f_config = auth_config.u2f_config
+				login_method = u2f_config.u2f_login_method.display_value()
+				output = tr('U2F login method: ') + login_method
+
+				output += '\n'
+				output += tr('Passwordless sudo: ') + (tr('Enabled') if u2f_config.passwordless_sudo else tr('Disabled'))
+
+			return output
+
+		return None
+
+	def _prev_applications(self, item: MenuItem) -> str | None:
+		if item.value:
+			app_config: ApplicationConfiguration = item.value
+			output = ''
+
+			if app_config.bluetooth_config:
+				output += f'{tr("Bluetooth")}: '
+				output += tr('Enabled') if app_config.bluetooth_config.enabled else tr('Disabled')
+				output += '\n'
+
+			if app_config.audio_config:
+				audio_config = app_config.audio_config
+				output += f'{tr("Audio")}: {audio_config.audio.value}'
+				output += '\n'
+
+			if app_config.print_service_config:
+				output += f'{tr("Print service")}: '
+				output += tr('Enabled') if app_config.print_service_config.enabled else tr('Disabled')
+				output += '\n'
+
+			if app_config.power_management_config:
+				power_management_config = app_config.power_management_config
+				output += f'{tr("Power management")}: {power_management_config.power_management.value}'
+				output += '\n'
+
+			if app_config.firewall_config:
+				firewall_config = app_config.firewall_config
+				output += f'{tr("Firewall")}: {firewall_config.firewall.value}'
+				output += '\n'
+
+			return output
+
+		return None
+
+	def _prev_tz(self, item: MenuItem) -> str | None:
+		if item.value:
+			return f'{tr("Timezone")}: {item.value}'
+		return None
+
+	def _prev_ntp(self, item: MenuItem) -> str | None:
+		if item.value is not None:
+			output = f'{tr("NTP")}: '
+			output += tr('Enabled') if item.value else tr('Disabled')
+			return output
+		return None
+
+	def _prev_disk_config(self, item: MenuItem) -> str | None:
+		disk_layout_conf: DiskLayoutConfiguration | None = item.value
+
+		if disk_layout_conf:
+			output = tr('Configuration type: {}').format(disk_layout_conf.config_type.display_msg()) + '\n'
+
+			if disk_layout_conf.config_type == DiskLayoutType.Pre_mount:
+				output += tr('Mountpoint') + ': ' + str(disk_layout_conf.mountpoint)
+
+			if disk_layout_conf.lvm_config:
+				output += '{}: {}'.format(tr('LVM configuration type'), disk_layout_conf.lvm_config.config_type.display_msg()) + '\n'
+
+			if disk_layout_conf.disk_encryption:
+				output += tr('Disk encryption') + ': ' + disk_layout_conf.disk_encryption.encryption_type.type_to_text() + '\n'
+
+			if disk_layout_conf.btrfs_options:
+				btrfs_options = disk_layout_conf.btrfs_options
+				if btrfs_options.snapshot_config:
+					output += tr('Btrfs snapshot type: {}').format(btrfs_options.snapshot_config.snapshot_type.value) + '\n'
+
+			return output
+
+		return None
+
+	def _prev_swap(self, item: MenuItem) -> str | None:
+		if item.value is not None:
+			output = f'{tr("Swap on zram")}: '
+			output += tr('Enabled') if item.value.enabled else tr('Disabled')
+			if item.value.enabled:
+				output += f'\n{tr("Compression algorithm")}: {item.value.algorithm.value}'
+			return output
+		return None
+
+	def _prev_hostname(self, item: MenuItem) -> str | None:
+		if item.value is not None:
+			return f'{tr("Hostname")}: {item.value}'
+		return None
+
+	def _prev_parallel_dw(self, item: MenuItem) -> str | None:
+		if item.value is not None:
+			return f'{tr("Parallel Downloads")}: {item.value}'
+		return None
+
+	def _prev_kernel(self, item: MenuItem) -> str | None:
+		if item.value:
+			kernel = ', '.join(item.value)
+			return f'{tr("Kernel")}: {kernel}'
+		return None
+
+	def _prev_bootloader_config(self, item: MenuItem) -> str | None:
+		bootloader_config: BootloaderConfiguration | None = item.value
+		if bootloader_config:
+			return bootloader_config.preview(self._uefi)
+		return None
+
+	def _validate_bootloader(self) -> str | None:
+		"""
+		Checks the selected bootloader is valid for the selected filesystem
+		type of the boot partition.
+
+		Returns [`None`] if the bootloader is valid, otherwise returns a
+		string with the error message.
+
+		XXX: The caller is responsible for wrapping the string with the translation
+			shim if necessary.
+		"""
+		bootloader_config: BootloaderConfiguration | None = None
+		root_partition: PartitionModification | None = None
+		boot_partition: PartitionModification | None = None
+		efi_partition: PartitionModification | None = None
+
+		bootloader_config = self._item_group.find_by_key('bootloader_config').value
+
+		if not bootloader_config or bootloader_config.bootloader == Bootloader.NO_BOOTLOADER:
+			return None
+
+		bootloader = bootloader_config.bootloader
+
+		if disk_config := self._item_group.find_by_key('disk_config').value:
+			for layout in disk_config.device_modifications:
+				if root_partition := layout.get_root_partition():
+					break
+			for layout in disk_config.device_modifications:
+				if boot_partition := layout.get_boot_partition():
+					break
+			if self._uefi:
+				for layout in disk_config.device_modifications:
+					if efi_partition := layout.get_efi_partition():
+						break
+		else:
+			return 'No disk layout selected'
+
+		if root_partition is None:
+			return 'Root partition not found'
+
+		if boot_partition is None:
+			return 'Boot partition not found'
+
+		if self._uefi:
+			if efi_partition is None:
+				return 'EFI system partition (ESP) not found'
+
+			if efi_partition.fs_type not in [FilesystemType.Fat12, FilesystemType.Fat16, FilesystemType.Fat32]:
+				return 'ESP must be formatted as a FAT filesystem'
+
+		if bootloader == Bootloader.Limine:
+			if boot_partition.fs_type not in [FilesystemType.Fat12, FilesystemType.Fat16, FilesystemType.Fat32]:
+				return 'Limine does not support booting with a non-FAT boot partition'
+
+		elif bootloader == Bootloader.Refind:
+			if not self._uefi:
+				return 'rEFInd can only be used on UEFI systems'
+
+		return None
+
+	def _prev_install_invalid_config(self, item: MenuItem) -> str | None:
+		if missing := self._missing_configs():
+			text = tr('Missing configurations:\n')
+			for m in missing:
+				text += f'- {m}\n'
+			return text[:-1]  # remove last new line
+
+		if error := self._validate_bootloader():
+			return tr(f'Invalid configuration: {error}')
+
+		return None
+
+	def _prev_profile(self, item: MenuItem) -> str | None:
+		profile_config: ProfileConfiguration | None = item.value
+
+		if profile_config and profile_config.profile:
+			output = tr('Profiles') + ': '
+			if profile_names := profile_config.profile.current_selection_names():
+				output += ', '.join(profile_names) + '\n'
+			else:
+				output += profile_config.profile.name + '\n'
+
+			if profile_config.gfx_driver:
+				output += tr('Graphics driver') + ': ' + profile_config.gfx_driver.value + '\n'
+
+			if profile_config.greeter:
+				output += tr('Greeter') + ': ' + profile_config.greeter.value + '\n'
+
+			return output
+
+		return None
+
+	def _select_disk_config(
+		self,
+		preset: DiskLayoutConfiguration | None = None,
+	) -> DiskLayoutConfiguration | None:
+		disk_config = DiskLayoutConfigurationMenu(preset).run()
+
+		return disk_config
+
+	def _select_bootloader_config(
+		self,
+		preset: BootloaderConfiguration | None = None,
+	) -> BootloaderConfiguration | None:
+		if preset is None:
+			preset = BootloaderConfiguration.get_default(self._uefi, self._skip_boot)
+
+		bootloader_config = BootloaderMenu(preset, self._uefi, self._skip_boot).run()
+
+		return bootloader_config
+
+	def _select_profile(self, current_profile: ProfileConfiguration | None) -> ProfileConfiguration | None:
+		from gentooinstall.lib.profile.profile_menu import ProfileMenu
+
+		profile_config = ProfileMenu(preset=current_profile).run()
+		return profile_config
+
+	def _select_additional_packages(self, preset: list[str]) -> list[str]:
+		default_value = ' '.join(preset)
+		result = Input(
+			header=tr('Additional packages (space separated):'),
+			allow_skip=True,
+			allow_reset=True,
+			default_value=default_value,
+		).show()
+
+		match result.type_:
+			case ResultType.Skip:
+				return preset
+			case ResultType.Reset:
+				return []
+			case ResultType.Selection:
+				value = result.get_value().strip()
+				if not value:
+					return []
+				return [pkg for pkg in value.split() if pkg]

@@ -5,7 +5,7 @@ body:
     attributes:
       value: >
         Please read our short mission statement before requesting more features:
-        https://github.com/archlinux/archinstall?tab=readme-ov-file#mission-statement
+        https://github.com/gentooinstall/gentooinstall?tab=readme-ov-file#mission-statement
 
   - type: textarea
     id: freeform

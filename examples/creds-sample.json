@@ -2,7 +2,7 @@
     "users": [
         {
             "sudo": true,
-            "username": "archinstall",
+            "username": "gentooinstall",
             "enc_password": "password_hash"
 
         }

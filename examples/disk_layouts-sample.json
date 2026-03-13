@@ -18,7 +18,7 @@
                     "subvolumes": {
                         "@home": "/home",
                         "@log": "/var/log",
-                        "@pkgs": "/var/cache/pacman/pkg"
+                        "@pkgs": "/var/cache/distfiles"
                     }
                 },
                 "encrypted": true,

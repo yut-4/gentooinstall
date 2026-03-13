@@ -1,7 +1,6 @@
-# This workflow will upload a Python Package when a release is created
-# For more information see: https://help.github.com/en/actions/language-and-framework-guides/using-python-with-github-actions#publishing-to-package-registries
+# This workflow will upload a Python package when a release is created.
 
-name: Upload archinstall to PyPi
+name: Upload gentooinstall to PyPI
 
 on:
   release:
@@ -9,25 +8,18 @@ on:
 
 jobs:
   deploy:
-
     runs-on: ubuntu-latest
     permissions:
-      # IMPORTANT: this permission is mandatory for Trusted Publishing
       id-token: write
-    container:
-      image: archlinux/archlinux:latest
-      options: --privileged
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-      - name: Prepare arch
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
+        with:
+          python-version: '3.12'
+      - name: Build gentooinstall
         run: |
-          pacman-key --init
-          pacman --noconfirm -Sy archlinux-keyring
-          pacman --noconfirm -Syyu
-          pacman --noconfirm -Sy python python-uv python-setuptools python-pip python-pyparted python-pydantic python-textual
-      - name: Build archinstall
-        run: |
-          uv build --no-build-isolation --wheel
-      - name: Publish archinstall to PyPi
-        run: |
-          uv publish --trusted-publishing always
+          python -m pip install --upgrade pip
+          pip install build
+          python -m build --wheel --no-isolation
+      - name: Publish gentooinstall to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1

@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from archinstall.lib.mirrors import MirrorListHandler
+from gentooinstall.lib.mirrors import MirrorListHandler
 
 
 def test_mirrorlist_no_country(mirrorlist_no_country_fixture: Path) -> None:
@@ -12,8 +12,8 @@ def test_mirrorlist_no_country(mirrorlist_no_country_fixture: Path) -> None:
 	assert len(regions) == 1
 	assert regions[0].name == 'Local'
 	assert regions[0].urls == [
-		'https://geo.mirror.pkgbuild.com/$repo/os/$arch',
-		'https://america.mirror.pkgbuild.com/$repo/os/$arch',
+		'https://distfiles.gentoo.org/',
+		'https://mirror.dkm.cz/gentoo/',
 	]
 
 
@@ -24,10 +24,10 @@ def test_mirrorlist_with_country(mirrorlist_with_country_fixture: Path) -> None:
 	regions = handler.get_mirror_regions()
 
 	assert len(regions) == 1
-	assert regions[0].name == 'United States'
+	assert regions[0].name == 'Worldwide'
 	assert regions[0].urls == [
-		'https://geo.mirror.pkgbuild.com/$repo/os/$arch',
-		'https://america.mirror.pkgbuild.com/$repo/os/$arch',
+		'https://distfiles.gentoo.org/',
+		'https://mirror.dkm.cz/gentoo/',
 	]
 
 
@@ -38,13 +38,13 @@ def test_mirrorlist_multiple_countries(mirrorlist_multiple_countries_fixture: Pa
 	regions = handler.get_mirror_regions()
 
 	assert len(regions) == 2
-	assert regions[0].name == 'United States'
+	assert regions[0].name == 'Worldwide'
 	assert regions[0].urls == [
-		'https://geo.mirror.pkgbuild.com/$repo/os/$arch',
-		'https://america.mirror.pkgbuild.com/$repo/os/$arch',
+		'https://distfiles.gentoo.org/',
+		'https://mirror.dkm.cz/gentoo/',
 	]
 
-	assert regions[1].name == 'Australia'
+	assert regions[1].name == 'Europe'
 	assert regions[1].urls == [
-		'https://au.mirror.pkgbuild.com/$repo/os/$arch',
+		'https://mirror.netcologne.de/gentoo/',
 	]

@@ -1,11 +1,11 @@
 name: bug report
-description: archinstall crashed or could not install properly?
+description: gentooinstall crashed or could not install properly?
 body:
   - type: markdown
     attributes:
       value: >
         Please read the ~5 known issues first:
-        https://archinstall.archlinux.page/help/known_issues.html
+        https://gentooinstall.readthedocs.io/en/latest/help/known_issues.html
 
   - type: markdown
     attributes:
@@ -25,13 +25,13 @@ body:
     id: bug-report
     attributes:
       label: The installation log
-      description: 'note: located at `/var/log/archinstall/install.log`'
+      description: 'note: located at `/var/log/gentooinstall/install.log`'
       placeholder: |
         Hardware model detected: Dell Inc. Precision 7670; UEFI mode: True
         Processor model detected: 12th Gen Intel(R) Core(TM) i7-12850HX
         Memory statistics: 31111048 available out of 32545396 total installed
         Disk states before installing: {'blockdevices': ... }
-        Testing connectivity to the Arch Linux mirrors ...
+        Testing connectivity to configured Gentoo mirrors ...
         ...
       render: json
     validations:
@@ -42,7 +42,7 @@ body:
       value: >
         **Note**: Assuming you have network connectivity,
         you can easily post the installation log using the following command:
-        `curl -F'file=@/var/log/archinstall/install.log' https://0x0.st`
+        `curl -F'file=@/var/log/gentooinstall/install.log' https://0x0.st`
 
   - type: textarea
     id: freeform
@@ -51,27 +51,27 @@ body:
       description: >
         Please describe your issue as best as you can.
         And please consider personal preferences vs what the recommended
-        steps/values are in https://wiki.archlinux.org/title/Installation_guide
+        steps/values are in https://wiki.gentoo.org/wiki/Handbook:AMD64/Installation/About
         as we try to abide by them as best we can.
       value: |
         #### Description of the issue
 
         I was installing on X hardware ...
 
-        Then X Y Z happened and archinstall crashed ...
+        Then X Y Z happened and gentooinstall crashed ...
 
         #### Virtual machine config:
 
         ```xml
         <domain type="kvm">
-          <name>my-arch-machine</name>
+          <name>my-gentoo-machine</name>
           ...
           </devices>
         </domain>
         ```
 
         ```console
-        /usr/bin/qemu-system-x86_64 -name guest=my-arch-machine,debug-threads=on -object ...
+        /usr/bin/qemu-system-x86_64 -name guest=my-gentoo-machine,debug-threads=on -object ...
         ```
     validations:
       required: true
@@ -80,6 +80,6 @@ body:
     attributes:
       value: >
         **Note**: Feel free to modify the textarea above as you wish.
-        But it will grately help us in testing if we can generate the specific qemu command line,
+        But it will greatly help us in testing if we can generate the specific qemu command line,
         for instance via:
-        `sudo virsh domxml-to-native qemu-argv --domain my-arch-machine`
+        `sudo virsh domxml-to-native qemu-argv --domain my-gentoo-machine`

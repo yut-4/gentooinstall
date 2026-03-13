@@ -11,7 +11,7 @@
         ],
         "mirror_regions": {
             "Australia": [
-          "http://archlinux.mirror.digitalpacific.com.au/$repo/os/$arch"
+          "https://distfiles.gentoo.org/"
             ]
         }
     }

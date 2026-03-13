@@ -3,24 +3,24 @@ from pathlib import Path
 
 from pytest import MonkeyPatch
 
-from archinstall.lib.args import ArchConfigHandler
-from archinstall.lib.configuration import ConfigurationOutput
+from gentooinstall.lib.args import InstallerConfigHandler
+from gentooinstall.lib.configuration import ConfigurationOutput
 
 
 def test_user_config_roundtrip(
 	monkeypatch: MonkeyPatch,
 	config_fixture: Path,
 ) -> None:
-	monkeypatch.setattr('sys.argv', ['archinstall', '--config', str(config_fixture)])
+	monkeypatch.setattr('sys.argv', ['gentooinstall', '--config', str(config_fixture)])
 
-	handler = ArchConfigHandler()
-	arch_config = handler.config
+	handler = InstallerConfigHandler()
+	installer_config = handler.config
 
-	# the version is retrieved dynamically from an installed archinstall package
+	# the version is retrieved dynamically from an installed gentooinstall package
 	# as there is no version present in the test environment we'll set it manually
-	arch_config.version = '3.0.2'
+	installer_config.version = '3.0.2'
 
-	config_output = ConfigurationOutput(arch_config)
+	config_output = ConfigurationOutput(installer_config)
 
 	test_out_dir = Path('/tmp/')
 	test_out_file = test_out_dir / config_output.user_configuration_file
@@ -50,12 +50,12 @@ def test_creds_roundtrip(
 	monkeypatch: MonkeyPatch,
 	creds_fixture: Path,
 ) -> None:
-	monkeypatch.setattr('sys.argv', ['archinstall', '--creds', str(creds_fixture)])
+	monkeypatch.setattr('sys.argv', ['gentooinstall', '--creds', str(creds_fixture)])
 
-	handler = ArchConfigHandler()
-	arch_config = handler.config
+	handler = InstallerConfigHandler()
+	installer_config = handler.config
 
-	config_output = ConfigurationOutput(arch_config)
+	config_output = ConfigurationOutput(installer_config)
 
 	test_out_dir = Path('/tmp/')
 	test_out_file = test_out_dir / config_output.user_credentials_file

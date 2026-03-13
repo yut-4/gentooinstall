@@ -1,9 +1,9 @@
 from pathlib import Path
 
-from archinstall.lib.disk.device_handler import device_handler
-from archinstall.lib.models.device import DiskLayoutConfiguration, DiskLayoutType
+from gentooinstall.lib.disk.device_handler import device_handler
+from gentooinstall.lib.models.device import DiskLayoutConfiguration, DiskLayoutType
 
-root_mount_dir = Path('/mnt/archinstall')
+root_mount_dir = Path('/mnt/gentooinstall')
 
 mods = device_handler.detect_pre_mounted_mods(root_mount_dir)
 

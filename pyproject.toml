@@ -3,16 +3,16 @@ requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "archinstall"
+name = "gentooinstall"
 version = "3.0.15"
-description = "Arch Linux installer - guided, templates etc."
+description = "Gentoo Linux installer - guided, templates etc."
 authors = [
     {name = "Anton Hvornum", email = "anton@hvornum.se"},
 ]
 license = "GPL-3.0-only"
 readme = "README.md"
 requires-python = ">=3.12"
-keywords = ["linux", "arch", "archinstall", "installer"]
+keywords = ["linux", "gentoo", "gentooinstall", "installer"]
 classifiers = [
     "Programming Language :: Python :: 3.12",
     "Operating System :: POSIX :: Linux",
@@ -26,9 +26,9 @@ dependencies = [
 ]
 
 [project.urls]
-Home = "https://archlinux.org"
-Documentation = "https://archinstall.readthedocs.io/"
-Source = "https://github.com/archlinux/archinstall"
+Home = "https://www.gentoo.org"
+Documentation = "https://gentooinstall.readthedocs.io/"
+Source = "https://github.com/gentooinstall/gentooinstall"
 
 [project.optional-dependencies]
 log = ["systemd_python==235"]
@@ -43,17 +43,18 @@ dev = [
 doc = ["sphinx"]
 
 [project.scripts]
-archinstall = "archinstall.main:main"
+gentooinstall = "gentooinstall.main:main"
+wgetload = "gentooinstall.wgetload:_cli"
 
 [tool.setuptools.dynamic]
-readme = {file = ["README.rst", "USAGE.rst"]}
+readme = {file = ["README.md"]}
 
 [tool.setuptools]
 include-package-data = true
 
 [tool.setuptools.package-data]
 # We could specify locales/languages.json etc instead, but catchall works too.
-"archinstall" = [
+"gentooinstall" = [
     "**/*.py",
     "**/*.mo",
     "**/*.po",
@@ -62,7 +63,7 @@ include-package-data = true
 ]
 
 [tool.setuptools.package-dir]
-archinstall = "archinstall"
+gentooinstall = "gentooinstall"
 
 [tool.mypy]
 python_version = "3.12"
@@ -89,33 +90,33 @@ strict = true
 warn_unreachable = true
 
 [[tool.mypy.overrides]]
-module = "archinstall.default_profiles.*"
+module = "gentooinstall.default_profiles.*"
 disallow_any_explicit = true
 
 [[tool.mypy.overrides]]
-module = "archinstall.examples.*"
+module = "gentooinstall.examples.*"
 disallow_any_explicit = true
 
 [[tool.mypy.overrides]]
-module = "archinstall.lib.*"
+module = "gentooinstall.lib.*"
 warn_return_any = false
 
 [[tool.mypy.overrides]]
-module = "archinstall.lib.disk.*"
+module = "gentooinstall.lib.disk.*"
 # 'Any' imports are allowed because pyparted doesn't have type hints
 disallow_any_unimported = false
 
 [[tool.mypy.overrides]]
-module = "archinstall.lib.models.*"
+module = "gentooinstall.lib.models.*"
 # 'Any' imports are allowed because pyparted doesn't have type hints
 disallow_any_unimported = false
 
 [[tool.mypy.overrides]]
-module = "archinstall.lib.packages"
+module = "gentooinstall.lib.packages"
 disallow_any_explicit = true
 
 [[tool.mypy.overrides]]
-module = "archinstall.lib.utils"
+module = "gentooinstall.lib.utils"
 disallow_any_explicit = true
 
 [[tool.mypy.overrides]]
@@ -125,7 +126,7 @@ module = [
 ignore_missing_imports = true
 
 [tool.bandit]
-targets = ["archinstall"]
+targets = ["gentooinstall"]
 exclude = ["/tests"]
 
 [tool.pytest]

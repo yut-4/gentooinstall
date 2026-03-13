@@ -4,10 +4,10 @@ from pathlib import Path
 
 from pytest import MonkeyPatch
 
-from archinstall.default_profiles.profile import GreeterType
-from archinstall.lib.args import ArchConfig, ArchConfigHandler, Arguments
-from archinstall.lib.hardware import GfxDriver
-from archinstall.lib.models.application import (
+from gentooinstall.default_profiles.profile import GreeterType
+from gentooinstall.lib.args import InstallerConfig, InstallerConfigHandler, Arguments
+from gentooinstall.lib.hardware import GfxDriver
+from gentooinstall.lib.models.application import (
 	ApplicationConfiguration,
 	Audio,
 	AudioConfiguration,
@@ -15,22 +15,22 @@ from archinstall.lib.models.application import (
 	PrintServiceConfiguration,
 	ZramConfiguration,
 )
-from archinstall.lib.models.authentication import AuthenticationConfiguration, U2FLoginConfiguration, U2FLoginMethod
-from archinstall.lib.models.bootloader import Bootloader, BootloaderConfiguration
-from archinstall.lib.models.device import DiskLayoutConfiguration, DiskLayoutType
-from archinstall.lib.models.locale import LocaleConfiguration
-from archinstall.lib.models.mirrors import CustomRepository, CustomServer, MirrorConfiguration, MirrorRegion, SignCheck, SignOption
-from archinstall.lib.models.network import NetworkConfiguration, Nic, NicType
-from archinstall.lib.models.packages import Repository
-from archinstall.lib.models.profile import ProfileConfiguration
-from archinstall.lib.models.users import Password, User
-from archinstall.lib.profile.profiles_handler import profile_handler
-from archinstall.lib.translationhandler import translation_handler
+from gentooinstall.lib.models.authentication import AuthenticationConfiguration, U2FLoginConfiguration, U2FLoginMethod
+from gentooinstall.lib.models.bootloader import Bootloader, BootloaderConfiguration
+from gentooinstall.lib.models.device import DiskLayoutConfiguration, DiskLayoutType
+from gentooinstall.lib.models.locale import LocaleConfiguration
+from gentooinstall.lib.models.mirrors import CustomRepository, CustomServer, MirrorConfiguration, MirrorRegion, SignCheck, SignOption
+from gentooinstall.lib.models.network import NetworkConfiguration, Nic, NicType
+from gentooinstall.lib.models.packages import Repository
+from gentooinstall.lib.models.profile import ProfileConfiguration
+from gentooinstall.lib.models.users import Password, User
+from gentooinstall.lib.profile.profiles_handler import profile_handler
+from gentooinstall.lib.translationhandler import translation_handler
 
 
 def test_default_args(monkeypatch: MonkeyPatch) -> None:
-	monkeypatch.setattr('sys.argv', ['archinstall'])
-	handler = ArchConfigHandler()
+	monkeypatch.setattr('sys.argv', ['gentooinstall'])
+	handler = InstallerConfigHandler()
 	args = handler.args
 	assert args == Arguments(
 		config=None,
@@ -62,7 +62,7 @@ def test_correct_parsing_args(
 	monkeypatch.setattr(
 		'sys.argv',
 		[
-			'archinstall',
+			'gentooinstall',
 			'--config',
 			str(config_fixture),
 			'--config-url',
@@ -88,7 +88,7 @@ def test_correct_parsing_args(
 		],
 	)
 
-	handler = ArchConfigHandler()
+	handler = InstallerConfigHandler()
 	args = handler.args
 
 	assert args == Arguments(
@@ -119,7 +119,7 @@ def test_config_file_parsing(
 	monkeypatch.setattr(
 		'sys.argv',
 		[
-			'archinstall',
+			'gentooinstall',
 			'--config',
 			str(config_fixture),
 			'--creds',
@@ -127,14 +127,14 @@ def test_config_file_parsing(
 		],
 	)
 
-	handler = ArchConfigHandler()
-	arch_config = handler.config
+	handler = InstallerConfigHandler()
+	installer_config = handler.config
 
 	# TODO: Use the real values from the test fixture instead of clearing out the entries
-	arch_config.disk_config.device_modifications = []  # type: ignore[union-attr]
+	installer_config.disk_config.device_modifications = []  # type: ignore[union-attr]
 
-	assert arch_config == ArchConfig(
-		version=version('archinstall'),
+	assert installer_config == InstallerConfig(
+		version=version('gentooinstall'),
 		script='test_script',
 		app_config=ApplicationConfiguration(
 			bluetooth_config=BluetoothConfiguration(enabled=True),
@@ -161,7 +161,7 @@ def test_config_file_parsing(
 			sys_lang='en_US',
 			sys_enc='UTF-8',
 		),
-		archinstall_language=translation_handler.get_language_by_abbr('en'),
+		installer_language=translation_handler.get_language_by_abbr('en'),
 		disk_config=DiskLayoutConfiguration(
 			config_type=DiskLayoutType.Default,
 			device_modifications=[],
@@ -193,15 +193,15 @@ def test_config_file_parsing(
 			mirror_regions=[
 				MirrorRegion(
 					name='Australia',
-					urls=['http://archlinux.mirror.digitalpacific.com.au/$repo/os/$arch'],
+					urls=['https://distfiles.gentoo.org/'],
 				),
 			],
-			custom_servers=[CustomServer('https://mymirror.com/$repo/os/$arch')],
+			custom_servers=[CustomServer('https://mirror.example.org/')],
 			optional_repositories=[Repository.Testing],
 			custom_repositories=[
 				CustomRepository(
 					name='myrepo',
-					url='https://myrepo.com/$repo/os/$arch',
+					url='https://myrepo.example.org/',
 					sign_check=SignCheck.Required,
 					sign_option=SignOption.TrustAll,
 				),
@@ -227,7 +227,7 @@ def test_config_file_parsing(
 			uki=False,
 			removable=False,
 		),
-		hostname='archy',
+		hostname='gentoo',
 		kernels=['linux-zen'],
 		ntp=True,
 		packages=['firefox'],
@@ -246,20 +246,20 @@ def test_deprecated_mirror_config_parsing(
 	monkeypatch.setattr(
 		'sys.argv',
 		[
-			'archinstall',
+			'gentooinstall',
 			'--config',
 			str(deprecated_mirror_config),
 		],
 	)
 
-	handler = ArchConfigHandler()
-	arch_config = handler.config
+	handler = InstallerConfigHandler()
+	installer_config = handler.config
 
-	assert arch_config.mirror_config == MirrorConfiguration(
+	assert installer_config.mirror_config == MirrorConfiguration(
 		mirror_regions=[
 			MirrorRegion(
 				name='Australia',
-				urls=['http://archlinux.mirror.digitalpacific.com.au/$repo/os/$arch'],
+				urls=['https://distfiles.gentoo.org/'],
 			),
 		],
 		custom_servers=[],
@@ -282,19 +282,19 @@ def test_deprecated_creds_config_parsing(
 	monkeypatch.setattr(
 		'sys.argv',
 		[
-			'archinstall',
+			'gentooinstall',
 			'--creds',
 			str(deprecated_creds_config),
 		],
 	)
 
-	handler = ArchConfigHandler()
-	arch_config = handler.config
+	handler = InstallerConfigHandler()
+	installer_config = handler.config
 
-	assert arch_config.auth_config is not None
-	assert arch_config.auth_config.root_enc_password == Password(plaintext='rootPwd')
+	assert installer_config.auth_config is not None
+	assert installer_config.auth_config.root_enc_password == Password(plaintext='rootPwd')
 
-	assert arch_config.auth_config.users == [
+	assert installer_config.auth_config.users == [
 		User(
 			username='user_name',
 			password=Password(plaintext='userPwd'),
@@ -311,16 +311,16 @@ def test_deprecated_audio_config_parsing(
 	monkeypatch.setattr(
 		'sys.argv',
 		[
-			'archinstall',
+			'gentooinstall',
 			'--config',
 			str(deprecated_audio_config),
 		],
 	)
 
-	handler = ArchConfigHandler()
-	arch_config = handler.config
+	handler = InstallerConfigHandler()
+	installer_config = handler.config
 
-	assert arch_config.app_config == ApplicationConfiguration(
+	assert installer_config.app_config == ApplicationConfiguration(
 		audio_config=AudioConfiguration(audio=Audio.PIPEWIRE),
 	)
 
@@ -332,7 +332,7 @@ def test_encrypted_creds_with_arg(
 	monkeypatch.setattr(
 		'sys.argv',
 		[
-			'archinstall',
+			'gentooinstall',
 			'--creds',
 			str(encrypted_creds_fixture),
 			'--creds-decryption-key',
@@ -340,12 +340,12 @@ def test_encrypted_creds_with_arg(
 		],
 	)
 
-	handler = ArchConfigHandler()
-	arch_config = handler.config
+	handler = InstallerConfigHandler()
+	installer_config = handler.config
 
-	assert arch_config.auth_config is not None
-	assert arch_config.auth_config.root_enc_password == Password(enc_password='$y$j9T$FWCInXmSsS.8KV4i7O50H.$Hb6/g.Sw1ry888iXgkVgc93YNuVk/Rw94knDKdPVQw7')
-	assert arch_config.auth_config.users == [
+	assert installer_config.auth_config is not None
+	assert installer_config.auth_config.root_enc_password == Password(enc_password='$y$j9T$FWCInXmSsS.8KV4i7O50H.$Hb6/g.Sw1ry888iXgkVgc93YNuVk/Rw94knDKdPVQw7')
+	assert installer_config.auth_config.users == [
 		User(
 			username='t',
 			password=Password(enc_password='$y$j9T$3KxMigAEnjtzbjalhLewE.$gmuoQtc9RNY/PmO/GxHHYvkZNO86Eeftg1Oc7L.QSO/'),
@@ -359,22 +359,22 @@ def test_encrypted_creds_with_env_var(
 	monkeypatch: MonkeyPatch,
 	encrypted_creds_fixture: Path,
 ) -> None:
-	os.environ['ARCHINSTALL_CREDS_DECRYPTION_KEY'] = 'master'
+	os.environ['GENTOOINSTALL_CREDS_DECRYPTION_KEY'] = 'master'
 	monkeypatch.setattr(
 		'sys.argv',
 		[
-			'archinstall',
+			'gentooinstall',
 			'--creds',
 			str(encrypted_creds_fixture),
 		],
 	)
 
-	handler = ArchConfigHandler()
-	arch_config = handler.config
+	handler = InstallerConfigHandler()
+	installer_config = handler.config
 
-	assert arch_config.auth_config is not None
-	assert arch_config.auth_config.root_enc_password == Password(enc_password='$y$j9T$FWCInXmSsS.8KV4i7O50H.$Hb6/g.Sw1ry888iXgkVgc93YNuVk/Rw94knDKdPVQw7')
-	assert arch_config.auth_config.users == [
+	assert installer_config.auth_config is not None
+	assert installer_config.auth_config.root_enc_password == Password(enc_password='$y$j9T$FWCInXmSsS.8KV4i7O50H.$Hb6/g.Sw1ry888iXgkVgc93YNuVk/Rw94knDKdPVQw7')
+	assert installer_config.auth_config.users == [
 		User(
 			username='t',
 			password=Password(enc_password='$y$j9T$3KxMigAEnjtzbjalhLewE.$gmuoQtc9RNY/PmO/GxHHYvkZNO86Eeftg1Oc7L.QSO/'),

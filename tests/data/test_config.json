@@ -1,5 +1,5 @@
 {
-  "archinstall-language": "English",
+  "gentooinstall-language": "English",
   "script": "test_script",
   "app_config": {
       "bluetooth_config": {
@@ -129,7 +129,7 @@
       }
     ]
   },
-  "hostname": "archy",
+  "hostname": "gentoo",
   "kernels": [
     "linux-zen"
   ],
@@ -141,12 +141,12 @@
   "mirror_config": {
     "custom_servers": [
         {
-          "url": "https://mymirror.com/$repo/os/$arch"
+          "url": "https://mirror.example.org/"
         }
     ],
     "mirror_regions": {
       "Australia": [
-        "http://archlinux.mirror.digitalpacific.com.au/$repo/os/$arch"
+        "https://distfiles.gentoo.org/"
       ]
     },
     "optional_repositories": [
@@ -155,7 +155,7 @@
     "custom_repositories": [
       {
         "name": "myrepo",
-        "url": "https://myrepo.com/$repo/os/$arch",
+        "url": "https://myrepo.example.org/",
         "sign_check": "Required",
         "sign_option": "TrustAll"
       }

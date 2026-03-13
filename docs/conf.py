@@ -34,7 +34,7 @@ def setup(app) -> None:  # type: ignore[no-untyped-def]
 
 # -- Project information -----------------------------------------------------
 
-project = 'python-archinstall'
+project = 'python-gentooinstall'
 copyright = '2022, Anton Hvornum'
 author = 'Anton Hvornum'
 
@@ -104,13 +104,13 @@ html_show_sourcelink = False
 # html_file_suffix = None
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'archinstalldoc'
+htmlhelp_basename = 'gentooinstalldoc'
 
 # -- Options for manual page output --------------------------------------------
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [('index', 'archinstall', 'archinstall Documentation', ['Anton Hvornum'], 1)]
+man_pages = [('index', 'gentooinstall', 'gentooinstall Documentation', ['Anton Hvornum'], 1)]
 
 # If true, show URL addresses after external links.
 # man_show_urls = False
@@ -122,5 +122,5 @@ man_pages = [('index', 'archinstall', 'archinstall Documentation', ['Anton Hvorn
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-	('index', 'archinstall', 'archinstall Documentation', 'Anton Hvornum', 'archinstall', 'Simple and minimal HTTP server.'),
+	('index', 'gentooinstall', 'gentooinstall Documentation', 'Anton Hvornum', 'gentooinstall', 'Simple and minimal HTTP server.'),
 ]

@@ -14,4 +14,4 @@ For other installation methods refer to the docs of the dependencies.
 
 ## Build
 
-In `archinstall/docs`, run `make html` (or specify another target) to build locally. The build files will be in `archinstall/docs/_build`. Open `_build/html/index.html` with your browser to see your changes in action.
+In `gentooinstall/docs`, run `make html` (or specify another target) to build locally. The build files will be in `gentooinstall/docs/_build`. Open `_build/html/index.html` with your browser to see your changes in action.

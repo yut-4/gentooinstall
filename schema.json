@@ -1,238 +1,298 @@
 {
-    "$schema": "https://json-schema.org/draft/2020-12/schema",
-    "title": "Archinstall Config",
-    "description": "A schema for the archinstall command config, more info over at https://archinstall.readthedocs.io/installing/guided.html#options-for-config",
-    "type": "object",
-    "properties": {
-        "additional-repositories": {
-            "description": "Additional repositories to optionally enable",
-            "type": "string",
-            "enum": [
-                "multilib",
-                "testing"
-            ]
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "gentooinstall Config",
+  "description": "Schema for gentooinstall JSON configuration files",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "version": {
+      "type": "string"
+    },
+    "script": {
+      "type": "string",
+      "enum": [
+        "guided",
+        "minimal",
+        "only_hd"
+      ]
+    },
+    "gentooinstall-language": {
+      "description": "Installer language label",
+      "type": "string"
+    },
+    "hostname": {
+      "type": "string"
+    },
+    "timezone": {
+      "type": "string"
+    },
+    "ntp": {
+      "type": "boolean"
+    },
+    "offline": {
+      "type": "boolean"
+    },
+    "no_pkg_lookups": {
+      "type": "boolean"
+    },
+    "kernels": {
+      "description": "List of kernels to install",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "gentoo-kernel-bin",
+          "gentoo-kernel",
+          "hardened-sources",
+          "linux",
+          "linux-lts",
+          "linux-zen",
+          "linux-hardened"
+        ]
+      }
+    },
+    "packages": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "parallel_downloads": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "parallel downloads": {
+      "description": "Deprecated key. Use parallel_downloads",
+      "type": "integer",
+      "minimum": 0
+    },
+    "services": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "custom_commands": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "disk_config": {
+      "type": "object"
+    },
+    "locale_config": {
+      "type": "object",
+      "properties": {
+        "kb_layout": {
+          "type": "string"
         },
-        "audio_config": {
-            "description": "Audio server to be installed",
-            "type": "object",
-            "properties": {
-                "audio": {
-                    "description": "Audio server to be installed",
-                    "type": "string",
-                    "enum": [
-                        "pipewire",
-                        "pulseaudio"
-                    ]
-                }
-            },
+        "sys_enc": {
+          "type": "string"
         },
+        "sys_lang": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
+    "mirror_config": {
+      "type": "object"
+    },
+    "network_config": {
+      "type": "object"
+    },
+    "profile_config": {
+      "type": "object"
+    },
+    "app_config": {
+      "type": "object"
+    },
+    "auth_config": {
+      "type": "object"
+    },
+    "swap": {
+      "oneOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "object"
+        }
+      ]
+    },
+    "bootloader_config": {
+      "description": "Primary bootloader settings",
+      "type": "object",
+      "properties": {
         "bootloader": {
-            "description": "Bootloader  to be installed",
-            "type": "string",
-            "enum": [
-                "systemd-bootctl",
-                "grub-install",
-                "efistub"
-            ]
+          "type": "string",
+          "enum": [
+            "No bootloader",
+            "Systemd-boot",
+            "Grub",
+            "Efistub",
+            "Limine",
+            "Refind"
+          ]
         },
         "uki": {
-            "description": "Set to true to use unified kernel images",
-            "type": "boolean"
+          "type": "boolean"
         },
-        "custom_commands": {
-            "description": "Custom commands to be run post install",
-            "type": "array",
-            "items": {
-                "type": "string"
-            }
+        "removable": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "bootloader"
+      ],
+      "additionalProperties": false
+    },
+    "bootloader": {
+      "description": "Deprecated key. Use bootloader_config.bootloader",
+      "type": "string",
+      "enum": [
+        "Systemd-boot",
+        "Grub",
+        "Efistub",
+        "Limine",
+        "Refind",
+        "No bootloader"
+      ]
+    },
+    "uki": {
+      "description": "Deprecated key. Use bootloader_config.uki",
+      "type": "boolean"
+    },
+    "gentoo": {
+      "description": "Gentoo-specific options for architecture, stage3, Portage sync and make.conf",
+      "type": "object",
+      "properties": {
+        "architecture": {
+          "description": "Target architecture. Use auto to detect from host machine",
+          "type": "string",
+          "enum": [
+            "auto",
+            "amd64",
+            "arm64",
+            "arm",
+            "x86",
+            "ppc",
+            "ppc64",
+            "hppa",
+            "mips",
+            "riscv",
+            "s390",
+            "sparc",
+            "alpha",
+            "loong"
+          ]
         },
-        "harddrives": {
-            "description": "Path of device to be used",
-            "type": "array",
-            "items": {
-                "type": "string"
-            }
+        "init_system": {
+          "description": "Init system for stage3 selection and service handling",
+          "type": "string",
+          "enum": [
+            "systemd",
+            "openrc"
+          ]
         },
-        "hostname": {
-            "description": "Hostname of machine after installation",
-            "type": "string"
+        "stage3_url": {
+          "description": "Optional explicit stage3 tarball URL override",
+          "type": "string"
         },
-        "kernels": {
-            "description": "List of kernels to install eg: linux, linux-lts, linux-zen etc",
-            "type": "array",
-            "items": {
-                "type": "string",
-                "enum": [
-                    "linux",
-                    "linux-lts",
-                    "linux-zen",
-                    "linux-hardened"
-                ]
-            }
-        },
-        "keyboard-language": {
-            "description": "eg: us, de, de-latin1 etc",
-            "type": "string"
-        },
-        "mirror-region": {
-            "description": "By default, it will autodetect the best region. Enter a region or a dictionary of regions and mirrors to use specific ones",
-            "type": "object"
-        },
-        "network_config": {
-            "description": "Choose between NetworkManager, manual configuration, use systemd-networkd from the ISO or no configuration",
-            "type": "object",
-            "properties": {
-                "type": "string",
-                "nics": {
-                    "type": "array",
-                    "items": {
-                        "iface": "string",
-                        "dhcp": "boolean",
-                        "ip": "string",
-                        "gateway": "string",
-                        "dns": {
-                            "description": "List of DNS servers",
-                            "type": "array",
-                            "items": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "ntp": {
-            "description": "Set to true to set-up ntp post install",
-            "type": "boolean"
-        },
-        "packages": {
-            "description": "List of packages to install post-installation",
-            "type": "array",
-            "items": {
-                "type": "string"
-            }
+        "stage3_flavor": {
+          "description": "Optional stage3 token override for uncommon variants",
+          "type": "string"
         },
         "profile": {
-            "path": {
-                "description": "Local path or Url that points to a python file containing profile definitions",
+          "description": "Optional eselect profile path",
+          "type": "string"
+        },
+        "sync_mode": {
+          "description": "How to synchronize /var/db/repos/gentoo",
+          "type": "string",
+          "enum": [
+            "sync",
+            "webrsync",
+            "none"
+          ]
+        },
+        "use_wgetload": {
+          "description": "Use wgetload helper for stage3 download resolution",
+          "type": "boolean"
+        },
+        "make_conf": {
+          "description": "Values merged into /etc/portage/make.conf",
+          "type": "object",
+          "properties": {
+            "common_flags": {
+              "type": "string"
+            },
+            "cflags": {
+              "type": "string"
+            },
+            "cxxflags": {
+              "type": "string"
+            },
+            "fcflags": {
+              "type": "string"
+            },
+            "fflags": {
+              "type": "string"
+            },
+            "rustflags": {
+              "type": "string"
+            },
+            "chost": {
+              "type": "string"
+            },
+            "makeopts": {
+              "type": "string"
+            },
+            "emerge_default_opts": {
+              "type": "string"
+            },
+            "use": {
+              "type": "array",
+              "items": {
                 "type": "string"
+              }
             },
-            "main":  {
-                "description": "Main top level profile selection",
-                "type": "string",
-                "enum": [
-                    "desktop",
-                    "minimal",
-                    "server",
-                    "xorg",
-                    "custom"
-                ]
-            },
-            "details": {
-                "description": "Specific profile to be installed based on the 'main' selection; these profiles are present in default_profiles/, use the file name of a profile without the extension to install it (case insensitive)",
-                "type": "string",
-                "enum": [
-                    "awesome",
-                    "bspwm",
-                    "budgie",
-                    "cinnamon",
-                    "cutefish",
-                    "deepin",
-                    "desktop",
-                    "enlightenment",
-                    "gnome",
-                    "i3-wm",
-                    "plasma",
-                    "lxqt",
-                    "mate",
-                    "sway",
-                    "xfce4",
-                    "qtile",
-                    "cockpit",
-                    "docker",
-                    "httpd",
-                    "lighttpd",
-                    "mariadb",
-                    "nginx",
-                    "postgresql",
-                    "sshd",
-                    "tomcat"
-                ]
-            },
-            "custom": {
-                "description": "Specific profile definitions for custom setup profiles)",
-                "type": "array",
-                "items": {
-                    "type": "object",
-                    "properties": {
-                        "packages": "string",
-                        "services": "string",
-                        "enabled": "boolean"
-                    }
-                }
-            },
-            "gfx_driver": {
-                "description": "Graphics Drivers to install if a desktop profile is used, ignored otherwise.",
-                "type": "string",
-                "enum": [
-                    "VirtualBox (open-source)",
-                    "Intel (open-source)",
-                    "AMD / ATI (open-source)",
-                    "All open-source (default)",
-                    "Nvidia (open kernel module for newer GPUs, Turing+)",
-                    "Nvidia (open-source nouveau driver)",
-                    "Nvidia (proprietary)"
-                ]
-            },
-            "greeter_type": {
-                "description": "Greeter type to install if a desktop profile is used, ignored otherwise.",
-                "type": "string",
-                "enum": ["lightdm", "sddm", "gdm"]
-            }
-        },
-        "services": {
-            "description": "Services to enable post-installation",
-            "type": "array",
-            "items": {
+            "features": {
+              "type": "array",
+              "items": {
                 "type": "string"
+              }
+            },
+            "accept_license": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "video_cards": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "grub_platforms": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "extra": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
             }
-        },
-        "sys-encoding": {
-            "description": "Set to change system encoding post-install, ignored if --advanced flag is not passed",
-            "type": "string"
-        },
-        "sys-language": {
-            "description": "Set to change system language post-install, ignored if --advanced flag is not passed",
-            "type": "string"
-        },
-        "timezone": {
-            "description": "Timezone eg: UTC, Asia/Kolkata etc.",
-            "type": "string"
+          },
+          "additionalProperties": true
         }
-    },
-    "required": [
-        "bootloader",
-        "kernels",
-        "mirror-region"
-    ],
-    "anyOf": [
-        {
-            "required": [
-                "!root-password"
-            ]
-        },
-        {
-            "required": {
-                "!users": {
-                    "description": "User account",
-                    "type": "object",
-                    "properties": {
-                        "username": "string",
-                        "!password": "string",
-                        "sudo": "boolean"
-                    }
-                }
-            }
-        }
-    ]
+      },
+      "additionalProperties": true
+    }
+  }
 }

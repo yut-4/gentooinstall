@@ -1,23 +1,17 @@
 on: [ push, pull_request ]
 name: mypy type checking
 jobs:
-    mypy:
-        runs-on: ubuntu-latest
-        container:
-            image: archlinux/archlinux:latest
-        steps:
-            - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-            - name: Prepare arch
-              run: |
-                pacman-key --init
-                pacman --noconfirm -Sy archlinux-keyring
-                pacman --noconfirm -Syyu
-                pacman --noconfirm -Sy python-pip python-pyparted pkgconfig gcc
-            - run: pip install --break-system-packages --upgrade pip
-            # this will install the exact version of mypy that is in the pyproject.toml file
-            - name: Install archinstall dependencies
-              run: pip install --break-system-packages .[dev]
-            - run: python --version
-            - run: mypy --version
-            - name: run mypy
-              run: mypy --config-file pyproject.toml
+  mypy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
+        with:
+          python-version: '3.12'
+      - run: python -m pip install --upgrade pip
+      - name: Install gentooinstall dependencies
+        run: pip install .[dev]
+      - run: python --version
+      - run: mypy --version
+      - name: run mypy
+        run: mypy --config-file pyproject.toml

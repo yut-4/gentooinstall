@@ -1,39 +1,30 @@
 # This workflow will build Python packages on every commit.
 
-name: Build archinstall
+name: Build gentooinstall
 
 on: [ push, pull_request ]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    container:
-      image: archlinux/archlinux:latest
-      options: --privileged
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-      - name: Prepare arch
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
+        with:
+          python-version: '3.12'
+      - name: Install build dependencies
         run: |
-          pacman-key --init
-          pacman --noconfirm -Sy archlinux-keyring
-          pacman --noconfirm -Syyu
-          pacman --noconfirm -Sy python-uv python-setuptools python-pip
-          pacman --noconfirm -Sy python-pyparted python-pydantic python-textual
-      - name: Remove existing archinstall (if any)
-        run: 
-          uv pip uninstall archinstall --break-system-packages --system
-      - name: Build archinstall
-        run: uv build --no-build-isolation --wheel
-      - name: Install archinstall
+          python -m pip install --upgrade pip
+          pip install build installer
+      - name: Build gentooinstall
+        run: python -m build --wheel --no-isolation
+      - name: Install gentooinstall
+        run: python -m installer dist/*.whl
+      - name: Smoke test CLI
         run: |
-          uv pip install dist/*.whl --break-system-packages --system --no-build --no-deps
-      - name: Run archinstall
-        run: |
-          python -V
-          archinstall --script guided -v
-          archinstall --script only_hd -v
-          archinstall --script minimal -v
+          gentooinstall --version
+          python -m gentooinstall --script list
       - uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7
         with:
-          name: archinstall
+          name: gentooinstall
           path: dist/*

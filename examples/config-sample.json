@@ -1,10 +1,10 @@
 {
-  "archinstall-language": "English",
+  "gentooinstall-language": "English",
   "audio_config": {
     "audio": "pipewire"
   },
   "bootloader_config": {
-    "bootloader": "Systemd-boot",
+    "bootloader": "Grub",
     "uki": false,
     "removable": false
   },
@@ -82,10 +82,34 @@
       }
     ]
   },
-  "hostname": "archlinux",
+  "hostname": "gentoo",
   "kernels": [
-    "linux"
+    "gentoo-kernel-bin"
   ],
+  "gentoo": {
+    "architecture": "auto",
+    "init_system": "systemd",
+    "sync_mode": "sync",
+    "use_wgetload": true,
+    "profile": "default/linux/amd64/23.0/systemd",
+    "make_conf": {
+      "common_flags": "-O2 -pipe",
+      "cflags": "${COMMON_FLAGS}",
+      "cxxflags": "${COMMON_FLAGS}",
+      "makeopts": "-j8",
+      "emerge_default_opts": "--jobs 8 --load-average 8",
+      "use": [
+        "X",
+        "wayland"
+      ],
+      "features": [
+        "parallel-fetch"
+      ],
+      "accept_license": [
+        "*"
+      ]
+    }
+  },
   "locale_config": {
     "kb_layout": "us",
     "sys_enc": "UTF-8",
@@ -94,21 +118,19 @@
   "mirror_config": {
     "custom_servers": [
       {
-        "url": "https://mymirror.com/$repo/os/$arch"
+        "url": "https://distfiles.gentoo.org/"
       }
     ],
     "mirror_regions": {
-      "Australia": [
-        "http://archlinux.mirror.digitalpacific.com.au/$repo/os/$arch"
+      "Worldwide": [
+        "https://distfiles.gentoo.org/"
       ]
     },
-    "optional_repositories": [
-      "testing"
-    ],
+    "optional_repositories": [],
     "custom_repositories": [
       {
         "name": "myrepo",
-        "url": "https://myrepo.com/$repo/os/$arch",
+        "url": "https://myrepo.example.org/",
         "sign_check": "Required",
         "sign_option": "TrustAll"
       }
@@ -133,7 +155,7 @@
   "ntp": true,
   "offline": false,
   "packages": [],
-  "parallel downloads": 0,
+  "parallel_downloads": 0,
   "profile_config": {
     "gfx_driver": "All open-source (default)",
     "greeter": "sddm",
