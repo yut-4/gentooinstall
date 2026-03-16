@@ -131,6 +131,10 @@ Built-in profiles:
 - [`gentooinstall/default_profiles/desktops`](gentooinstall/default_profiles/desktops)
 - [`gentooinstall/default_profiles/servers`](gentooinstall/default_profiles/servers)
 
+## Project inspired by
+
+https://github.com/archlinux/archinstall
+
 ## Documentation
 
 - https://gentooinstall.readthedocs.io/
