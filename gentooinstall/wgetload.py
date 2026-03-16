@@ -313,6 +313,15 @@ def download_file(
 			str(destination),
 			url,
 		]
+	if shutil.which('git clone'):
+		cmd = [
+			'git',
+			'clone',
+			'--depth',
+			'1',
+			url,
+			str(destination),
+		]
 		subprocess.run(cmd, check=True)
 		return destination
 
@@ -323,11 +332,69 @@ def download_file(
 	return destination
 
 
+
+def detect_install_method(repo_dir: str | Path = ".") -> str:
+	"""
+	Returns 'git' if the repo was installed via git clone,
+	'wget' if downloaded via wget/curl, or 'unknown' if none detected.
+
+	Args:
+		repo_dir: Path to the repo root. Defaults to current directory.
+
+	Returns:
+		'git', 'wget', or 'unknown'
+	"""
+	repo_path = Path(repo_dir).resolve()
+	git_entry = repo_path / ".git"
+
+	# .git can be a directory (normal clone) or a file (submodule)
+	if git_entry.exists():
+		return "git"
+	
+	# Check if any download tools are available
+	if shutil.which('wget') or shutil.which('curl'):
+		return "wget"
+	
+	return "unknown"
+
+
+def report_install_method(repo_dir: str | Path = ".") -> None:
+	"""Pretty-print the detected install method with actionable advice."""
+	method = detect_install_method(repo_dir)
+
+	messages = {
+		"git": (
+			"[install] Detected: git clone\n"
+			"[install] You can update with: git pull"
+		),
+		"wget": (
+			"[install] Detected: wget / curl available\n"
+			"[install] You can download files with available tools"
+		),
+		"unknown": (
+			"[install] No supported installation method detected\n"
+			"[install] Please install wget, curl, or git to continue\n"
+			"[install] Alias installation is blocked until tools are available"
+		),
+	}
+
+	print(messages[method])
+
+
 def install_shell_alias(
 	alias_name: str = 'gentooinstall',
 	command: str = 'python3 -m gentooinstall',
 	shell_rc: Path | None = None,
+	repo_dir: str | Path = ".",
 ) -> bool:
+	"""Install shell alias only if supported installation method is detected."""
+	method = detect_install_method(repo_dir)
+	
+	if method == "unknown":
+		print(f"[error] Cannot install alias: no supported installation method detected")
+		print(f"[error] Please install one of: wget, curl, git")
+		return False
+	
 	if shell_rc is None:
 		shell_rc = Path.home() / '.zshrc'
 
@@ -339,11 +406,13 @@ def install_shell_alias(
 	content = shell_rc.read_text()
 
 	if alias_line in content:
+		print(f"[alias] Alias '{alias_name}' already exists")
 		return False
 
 	with shell_rc.open('a') as f:
 		f.write(f'\n# gentooinstall helper alias\n{alias_line}\n')
 
+	print(f"[alias] Installed '{alias_name}' alias successfully")
 	return True
 
 
