@@ -26,6 +26,19 @@ pip install -e .
 gentooinstall --script guided
 ```
 
+Production quick start from this repository:
+
+```sh
+./scripts/run-prod.sh --script guided
+```
+
+`scripts/run-prod.sh` creates `.venv` if missing, installs this package on first run, and then runs `gentooinstall` with `sudo`.
+Use `--refresh` to force reinstall/update:
+
+```sh
+./scripts/run-prod.sh --refresh --script guided
+```
+
 Other built-in scripts:
 
 ```sh

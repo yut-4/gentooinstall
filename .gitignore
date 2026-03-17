@@ -8,6 +8,7 @@ SAFETY_LOCK
 **/**.egg*
 **/**.sh
 !gentooinstall/locales/locales_generator.sh
+!scripts/run-prod.sh
 **/**.egg-info/
 **/**build/
 **/**src/

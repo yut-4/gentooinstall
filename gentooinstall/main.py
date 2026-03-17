@@ -8,6 +8,13 @@ import time
 import traceback
 from pathlib import Path
 
+# Allow direct script execution (python main.py / python gentooinstall/main.py)
+# by exposing the project root so absolute package imports resolve.
+if __package__ in (None, ''):
+	project_root = Path(__file__).resolve().parent.parent
+	if str(project_root) not in sys.path:
+		sys.path.insert(0, str(project_root))
+
 from gentooinstall.lib.args import InstallerConfigHandler
 from gentooinstall.lib.command import SysCommand
 from gentooinstall.lib.disk.utils import disk_layouts
