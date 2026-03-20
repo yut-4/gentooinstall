@@ -2,10 +2,11 @@ import os
 from enum import Enum
 from functools import cached_property
 from pathlib import Path
+from shutil import which
 from typing import Self
 
 from gentooinstall.lib.command import SysCommand
-from gentooinstall.lib.exceptions import SysCallError
+from gentooinstall.lib.exceptions import RequirementError, SysCallError
 from gentooinstall.lib.networking import enrich_iface_types, list_interfaces
 from gentooinstall.lib.output import debug
 from gentooinstall.lib.translationhandler import tr
@@ -291,23 +292,23 @@ class SysInfo:
 		return _sys_info.mem_info_by_key('MemTotal')
 
 	@staticmethod
-	def virtualization() -> str | None:
+	def virtualization() -> str:
+		if not which('systemd-detect-virt'):
+			debug('Could not detect virtual system: systemd-detect-virt is unavailable.')
+			return 'unknown'
+
 		try:
-			return str(SysCommand('systemd-detect-virt')).strip('\r\n')
-		except SysCallError as err:
+			detected = str(SysCommand('systemd-detect-virt')).strip('\r\n')
+			return detected or 'unknown'
+		except (RequirementError, SysCallError) as err:
 			debug(f'Could not detect virtual system: {err}')
 
-		return None
+		return 'unknown'
 
 	@staticmethod
 	def is_vm() -> bool:
-		try:
-			result = SysCommand('systemd-detect-virt')
-			return b'none' not in b''.join(result).lower()
-		except SysCallError as err:
-			debug(f'System is not running in a VM: {err}')
-
-		return False
+		virt = SysInfo.virtualization().lower()
+		return virt not in ('none', 'unknown', '')
 
 	@staticmethod
 	def requires_sof_fw() -> bool:
