@@ -20,10 +20,15 @@ gentooinstall
 Run from this repository (recommended for development/testing):
 
 ```sh
-python3 -m venv .venv
-. .venv/bin/activate
-pip install -e .
-gentooinstall --script guided
+  cd /home/yuta/archinstall
+  python3 -m venv .venv
+  . .venv/bin/activate
+  pip install -e .
+  sudo "$(pwd)/.venv/bin/gentooinstall" --script guided
+
+  También funciona con main.py:
+
+  sudo "$(pwd)/.venv/bin/python" "$(pwd)/main.py" --script guided
 ```
 
 Or run directly from repository root:
