@@ -1,11 +1,12 @@
 import os
 from importlib.metadata import version
 from pathlib import Path
+from types import SimpleNamespace
 
 from pytest import MonkeyPatch
 
 from gentooinstall.default_profiles.profile import GreeterType
-from gentooinstall.lib.args import InstallerConfig, InstallerConfigHandler, Arguments
+from gentooinstall.lib.args import Arguments, InstallerConfig, InstallerConfigHandler
 from gentooinstall.lib.hardware import GfxDriver
 from gentooinstall.lib.models.application import (
 	ApplicationConfiguration,
@@ -382,3 +383,96 @@ def test_encrypted_creds_with_env_var(
 			groups=[],
 		),
 	]
+
+
+def _fake_device(path: str, size: int, read_only: bool = False, device_type: str = 'disk') -> SimpleNamespace:
+	return SimpleNamespace(
+		device_info=SimpleNamespace(
+			path=Path(path),
+			total_size=size,
+			read_only=read_only,
+			type=device_type,
+		),
+	)
+
+
+def test_disk_auto_resolution_explicit_auto(monkeypatch: MonkeyPatch) -> None:
+	fake_handler = SimpleNamespace(
+		devices=[
+			_fake_device('/dev/nvme0n1', 100),
+			_fake_device('/dev/vda', 60),
+		],
+	)
+
+	monkeypatch.setattr('gentooinstall.lib.disk.device_handler.device_handler', fake_handler)
+
+	disk_config = {
+		'device_modifications': [
+			{'device': '/dev/auto'},
+		],
+	}
+
+	InstallerConfig._resolve_disk_config_devices(disk_config)
+
+	assert disk_config['device_modifications'][0]['device'] == '/dev/vda'
+
+
+def test_disk_auto_resolution_legacy_missing_sda(monkeypatch: MonkeyPatch) -> None:
+	fake_handler = SimpleNamespace(
+		devices=[
+			_fake_device('/dev/nvme0n1', 100),
+		],
+	)
+
+	monkeypatch.setattr('gentooinstall.lib.disk.device_handler.device_handler', fake_handler)
+
+	disk_config = {
+		'device_modifications': [
+			{'device': '/dev/sda'},
+		],
+	}
+
+	InstallerConfig._resolve_disk_config_devices(disk_config)
+
+	assert disk_config['device_modifications'][0]['device'] == '/dev/nvme0n1'
+
+
+def test_disk_auto_resolution_non_auto_kept(monkeypatch: MonkeyPatch) -> None:
+	fake_handler = SimpleNamespace(
+		devices=[
+			_fake_device('/dev/vda', 60),
+		],
+	)
+
+	monkeypatch.setattr('gentooinstall.lib.disk.device_handler.device_handler', fake_handler)
+
+	disk_config = {
+		'device_modifications': [
+			{'device': '/dev/vdb'},
+		],
+	}
+
+	InstallerConfig._resolve_disk_config_devices(disk_config)
+
+	assert disk_config['device_modifications'][0]['device'] == '/dev/vdb'
+
+
+def test_disk_auto_resolution_largest_fallback(monkeypatch: MonkeyPatch) -> None:
+	fake_handler = SimpleNamespace(
+		devices=[
+			_fake_device('/dev/custom0', 20),
+			_fake_device('/dev/custom1', 40),
+		],
+	)
+
+	monkeypatch.setattr('gentooinstall.lib.disk.device_handler.device_handler', fake_handler)
+
+	disk_config = {
+		'device_modifications': [
+			{'device': 'auto'},
+		],
+	}
+
+	InstallerConfig._resolve_disk_config_devices(disk_config)
+
+	assert disk_config['device_modifications'][0]['device'] == '/dev/custom1'

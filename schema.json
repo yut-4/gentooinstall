@@ -13,7 +13,8 @@
       "enum": [
         "guided",
         "minimal",
-        "only_hd"
+        "only_hd",
+        "handbook"
       ]
     },
     "gentooinstall-language": {

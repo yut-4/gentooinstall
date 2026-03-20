@@ -148,6 +148,28 @@ class GentooInstaller(Installer):
 	def drop_to_shell(self) -> None:
 		subprocess.check_call(f'chroot {shlex.quote(str(self.target))} /bin/bash', shell=True)
 
+	def drop_to_handbook_shell(self) -> None:
+		term = os.environ.get('TERM', 'linux')
+		cmd = [
+			'chroot',
+			str(self.target),
+			'/usr/bin/env',
+			'-i',
+			'HOME=/root',
+			f'TERM={term}',
+			'PS1=(chroot) \\u@\\h \\w \\$ ',
+			'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin',
+			'/bin/bash',
+			'--login',
+		]
+		subprocess.check_call(cmd)
+
+	def prepare_handbook_chroot(self) -> None:
+		self._bootstrap_stage3()
+		self._setup_runtime_mounts()
+		self._helper_flags['base-strapped'] = True
+		self._helper_flags['base'] = True
+
 	def set_mirrors(
 		self,
 		mirror_list_handler: MirrorListHandler,

@@ -56,6 +56,7 @@ Other built-in scripts:
 gentooinstall --script list
 gentooinstall --script minimal
 gentooinstall --script only_hd
+gentooinstall --script handbook
 ```
 
 ## Declarative installs (JSON)
@@ -119,7 +120,7 @@ BIOS profile:
 gentooinstall --config examples/gentoo-grub-bios.json
 ```
 
-Both examples are designed as starting templates. Update `disk_config.device_modifications[].device` and network interface values before production installs.
+Both examples are designed as starting templates. They default to `"/dev/auto"` for disk auto-detection; still update network interface values before production installs.
 
 ## wgetload helper
 

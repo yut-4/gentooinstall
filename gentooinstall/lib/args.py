@@ -7,7 +7,7 @@ import urllib.parse
 from argparse import ArgumentParser, Namespace
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Self
+from typing import Any, ClassVar, Self
 from urllib.request import Request, urlopen
 
 from pydantic.dataclasses import dataclass as p_dataclass
@@ -57,6 +57,16 @@ class Arguments:
 
 @dataclass
 class InstallerConfig:
+	_AUTO_DEVICE_VALUES: ClassVar[set[str]] = {'auto', '/dev/auto'}
+	_PREFERRED_DEVICE_PATHS: ClassVar[tuple[str, ...]] = (
+		'/dev/vda',
+		'/dev/sda',
+		'/dev/nvme0n1',
+		'/dev/xvda',
+		'/dev/hda',
+		'/dev/mmcblk0',
+	)
+
 	version: str | None = None
 	script: str | None = None
 	locale_config: LocaleConfiguration | None = None
@@ -78,6 +88,73 @@ class InstallerConfig:
 	services: list[str] = field(default_factory=list)
 	custom_commands: list[str] = field(default_factory=list)
 	gentoo: GentooConfiguration = field(default_factory=GentooConfiguration)
+
+	@classmethod
+	def _pick_auto_device(cls, devices: list[Any]) -> str | None:
+		if not devices:
+			return None
+
+		if len(devices) == 1:
+			return str(devices[0].device_info.path)
+
+		available_by_path = {
+			str(device.device_info.path): device
+			for device in devices
+		}
+
+		for preferred_path in cls._PREFERRED_DEVICE_PATHS:
+			if preferred_path in available_by_path:
+				return preferred_path
+
+		largest_device = max(devices, key=lambda device: device.device_info.total_size)
+		return str(largest_device.device_info.path)
+
+	@classmethod
+	def _resolve_disk_config_devices(cls, disk_config: dict[str, Any]) -> None:
+		from gentooinstall.lib.disk.device_handler import device_handler
+
+		device_mods = disk_config.get('device_modifications', [])
+
+		if not isinstance(device_mods, list):
+			return
+
+		candidate_devices = [
+			device
+			for device in device_handler.devices
+			if not device.device_info.read_only and device.device_info.type != 'loop'
+		]
+
+		available_paths = {
+			str(device.device_info.path)
+			for device in candidate_devices
+		}
+
+		for mod in device_mods:
+			if not isinstance(mod, dict):
+				continue
+
+			raw_device = str(mod.get('device', '')).strip()
+			if not raw_device:
+				continue
+
+			is_explicit_auto = raw_device.lower() in cls._AUTO_DEVICE_VALUES
+			configured_exists = raw_device in available_paths
+			is_legacy_missing_sda = raw_device == '/dev/sda' and not configured_exists
+
+			if configured_exists and not is_explicit_auto:
+				continue
+
+			if not is_explicit_auto and not is_legacy_missing_sda:
+				continue
+
+			resolved_device = cls._pick_auto_device(candidate_devices)
+			if not resolved_device:
+				warn(f'Disk auto-resolution failed for "{raw_device}" (no writable block devices found)')
+				continue
+
+			if resolved_device != raw_device:
+				warn(f'Resolved install disk "{raw_device}" -> "{resolved_device}"')
+				mod['device'] = resolved_device
 
 	def unsafe_config(self) -> dict[str, Any]:
 		config: dict[str, list[UserSerialization] | str | None] = {}
@@ -146,6 +223,8 @@ class InstallerConfig:
 			installer_config.installer_language = translation_handler.get_language_by_name(installer_lang)
 
 		if disk_config := args_config.get('disk_config', {}):
+			cls._resolve_disk_config_devices(disk_config)
+
 			enc_password = args_config.get('encryption_password', '')
 			password = Password(plaintext=enc_password) if enc_password else None
 			installer_config.disk_config = DiskLayoutConfiguration.parse_arg(disk_config, password)
