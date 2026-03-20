@@ -1,0 +1,198 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gentoo Real Mode &mdash; python-gentooinstall v2.3.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=387c4177"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Known Issues" href="../help/known_issues.html" />
+    <link rel="prev" title="Guided installation" href="guided.html" />
+    <link href="../_static/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            python-gentooinstall
+              <img src="../_static/logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Running gentooinstall</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="guided.html">Guided installation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Gentoo Real Mode</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#run-from-source">Run from source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#run-declarative-install">Run declarative install</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#architecture-and-stage3">Architecture and stage3</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#bootloaders">Bootloaders</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#config-tips">Config tips</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Getting help</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../help/known_issues.html">Known Issues</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../help/report_bug.html">Report Issues &amp; Bugs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../help/discord.html">Discord</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">gentooinstall as a library</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="python.html">Python library</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/python.html">Python module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gentooinstall/plugins.html">Python Plugins</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../gentooinstall/Installer.html">gentooinstall.Installer</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">python-gentooinstall</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Gentoo Real Mode</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="gentoo-real-mode">
+<span id="installing-gentoo-real"></span><h1>Gentoo Real Mode<a class="headerlink" href="#gentoo-real-mode" title="Link to this heading"></a></h1>
+<p>This page describes the practical flow used by <code class="docutils literal notranslate"><span class="pre">gentooinstall</span></code> for real Gentoo installs,
+including architecture handling, stage3 resolution, and GRUB setup.</p>
+<section id="run-from-source">
+<h2>Run from source<a class="headerlink" href="#run-from-source" title="Link to this heading"></a></h2>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>.venv
+.<span class="w"> </span>.venv/bin/activate
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
+gentooinstall<span class="w"> </span>--script<span class="w"> </span>guided
+</pre></div>
+</div>
+</section>
+<section id="run-declarative-install">
+<h2>Run declarative install<a class="headerlink" href="#run-declarative-install" title="Link to this heading"></a></h2>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>gentooinstall<span class="w"> </span>--config<span class="w"> </span>examples/gentoo-grub-uefi.json
+</pre></div>
+</div>
+<p>or:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>gentooinstall<span class="w"> </span>--config<span class="w"> </span>examples/gentoo-grub-bios.json
+</pre></div>
+</div>
+<p>Update device paths and interfaces before using these in production.</p>
+</section>
+<section id="architecture-and-stage3">
+<h2>Architecture and stage3<a class="headerlink" href="#architecture-and-stage3" title="Link to this heading"></a></h2>
+<p>Under the <code class="docutils literal notranslate"><span class="pre">gentoo</span></code> config key:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">architecture</span></code> supports: <code class="docutils literal notranslate"><span class="pre">auto</span></code>, <code class="docutils literal notranslate"><span class="pre">amd64</span></code>, <code class="docutils literal notranslate"><span class="pre">arm64</span></code>, <code class="docutils literal notranslate"><span class="pre">arm</span></code>, <code class="docutils literal notranslate"><span class="pre">x86</span></code>, <code class="docutils literal notranslate"><span class="pre">ppc</span></code>, <code class="docutils literal notranslate"><span class="pre">ppc64</span></code>, <code class="docutils literal notranslate"><span class="pre">hppa</span></code>, <code class="docutils literal notranslate"><span class="pre">mips</span></code>, <code class="docutils literal notranslate"><span class="pre">riscv</span></code>, <code class="docutils literal notranslate"><span class="pre">s390</span></code>, <code class="docutils literal notranslate"><span class="pre">sparc</span></code>, <code class="docutils literal notranslate"><span class="pre">alpha</span></code>, <code class="docutils literal notranslate"><span class="pre">loong</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">init_system</span></code> supports: <code class="docutils literal notranslate"><span class="pre">systemd</span></code> or <code class="docutils literal notranslate"><span class="pre">openrc</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sync_mode</span></code> supports: <code class="docutils literal notranslate"><span class="pre">sync</span></code>, <code class="docutils literal notranslate"><span class="pre">webrsync</span></code>, <code class="docutils literal notranslate"><span class="pre">none</span></code>.</p></li>
+</ul>
+<p>Stage3 resolution uses Gentoo distfiles and can be tested directly:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>wgetload<span class="w"> </span>resolve-stage3<span class="w"> </span>--arch<span class="w"> </span>amd64<span class="w"> </span>--init-system<span class="w"> </span>systemd
+wgetload<span class="w"> </span>resolve-stage3<span class="w"> </span>--arch<span class="w"> </span>riscv<span class="w"> </span>--init-system<span class="w"> </span>openrc
+</pre></div>
+</div>
+</section>
+<section id="bootloaders">
+<h2>Bootloaders<a class="headerlink" href="#bootloaders" title="Link to this heading"></a></h2>
+<p>Implemented in GentooInstaller:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Grub</span></code>: UEFI and BIOS/legacy paths.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Systemd-boot</span></code>: UEFI.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Efistub</span></code>: UEFI.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Refind</span></code>: UEFI.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Limine</span></code>: UEFI and BIOS for <code class="docutils literal notranslate"><span class="pre">amd64</span></code>/<code class="docutils literal notranslate"><span class="pre">x86</span></code>.</p></li>
+</ul>
+<p>GRUB target selection is architecture-aware:</p>
+<ul class="simple">
+<li><p>UEFI: <code class="docutils literal notranslate"><span class="pre">x86_64-efi</span></code>, <code class="docutils literal notranslate"><span class="pre">i386-efi</span></code>, <code class="docutils literal notranslate"><span class="pre">arm64-efi</span></code>, <code class="docutils literal notranslate"><span class="pre">arm-efi</span></code>, <code class="docutils literal notranslate"><span class="pre">riscv64-efi</span></code>, <code class="docutils literal notranslate"><span class="pre">loongarch64-efi</span></code>.</p></li>
+<li><p>BIOS/legacy: <code class="docutils literal notranslate"><span class="pre">i386-pc</span></code>, <code class="docutils literal notranslate"><span class="pre">powerpc-ieee1275</span></code>.</p></li>
+</ul>
+<p>If the requested firmware/architecture combination is unsupported for automatic setup,
+installation fails with an explicit error instead of silently installing an incorrect target.</p>
+</section>
+<section id="config-tips">
+<h2>Config tips<a class="headerlink" href="#config-tips" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>For UEFI + GRUB, keep a FAT ESP mounted as <code class="docutils literal notranslate"><span class="pre">/boot</span></code> and use <code class="docutils literal notranslate"><span class="pre">bootloader_config.bootloader</span> <span class="pre">=</span> <span class="pre">&quot;Grub&quot;</span></code>.</p></li>
+<li><p>For BIOS + GRUB on GPT disks, ensure your partition layout includes what GRUB requires for your platform.</p></li>
+<li><p>If you override stage3/profile manually, keep profile and architecture aligned (for example <code class="docutils literal notranslate"><span class="pre">amd64</span></code> profile on <code class="docutils literal notranslate"><span class="pre">amd64</span></code> systems).</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="guided.html" class="btn btn-neutral float-left" title="Guided installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../help/known_issues.html" class="btn btn-neutral float-right" title="Known Issues" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Anton Hvornum.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
