@@ -26,6 +26,12 @@ pip install -e .
 gentooinstall --script guided
 ```
 
+Or run directly from repository root:
+
+```sh
+python main.py --script guided
+```
+
 Production quick start from this repository:
 
 ```sh
