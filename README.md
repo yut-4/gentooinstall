@@ -1,6 +1,4 @@
-<p align="center">
-<img src="docs/logo.png" alt="Gentoo logo" width="200"/>
-</p>
+![Gentoo logo](docs/logo.png)
 
 # gentooinstall
 
